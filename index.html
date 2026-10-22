@@ -1,0 +1,191 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>IoT Data Intelligence Platform</title>
+<style>
+:root{--bg:#e6f6ec;--panel:#fff;--ink:#0f2a1c;--mut:#4b6556;--line:#d3e8da;--acc:#15803d;--c2:#d9531e;--ok:#15803d;--side:#d5f0de;--sink:#14532d;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+
+
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{display:flex;min-height:100vh}aside{width:216px;background:var(--side);color:var(--sink);padding:18px 12px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh}
+aside h1{font-size:15px;margin:0 8px 16px;color:var(--ink);line-height:1.3}aside button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--sink);padding:9px 10px;border-radius:7px;font:inherit;cursor:pointer}
+aside button:hover{background:#15803d1f}aside button[aria-current=page]{background:var(--acc);color:var(--on)}
+main{flex:1;min-width:0;padding:22px clamp(14px,3vw,34px) 40px}h2{margin:0 0 4px;font-size:22px}.mut{color:var(--mut)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi b{display:block;font-size:26px;letter-spacing:-.5px}.kpi span{color:var(--mut);font-size:13px}
+button.p,.drop{font:inherit}button.p{background:var(--acc);color:var(--on);border:0;border-radius:7px;padding:8px 14px;cursor:pointer}button.s{background:none;border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;cursor:pointer;font:inherit;margin:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:34px 16px;text-align:center;cursor:pointer;display:block;background:none;color:var(--ink);width:100%}.drop.on{border-color:var(--acc)}
+.err{border-left:4px solid var(--c2);padding:10px 12px;background:var(--panel);border-radius:6px;margin:10px 0}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}tr.f td{color:var(--c2);font-weight:600}tbody tr:hover{background:#15803d14}
+select,input[type=date],input[type=number]{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+svg{width:100%;height:auto;display:block}.tag{display:inline-block;padding:1px 8px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
+.sim{border:1px solid var(--c2);color:var(--c2);padding:1px 8px;border-radius:5px;font-size:12px}textarea{width:100%;height:150px;font:12px monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+@media(max-width:760px){.app{display:block}aside{width:auto;height:auto;position:sticky;top:0;z-index:5;padding:8px;display:flex;gap:4px;overflow-x:auto}aside h1{display:none}aside button{width:auto;white-space:nowrap}}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--panel)}
+header#top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;display:flex;align-items:center;gap:12px;padding:10px clamp(14px,3vw,28px);background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#22c55e,#15803d);display:grid;place-items:center;flex:none}
+.brand b{display:block;line-height:1.2}.brand span{font-size:12px;color:var(--mut)}
+.chip{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:4px 12px;max-width:34vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mut);flex:none}.dot.on{background:var(--ok)}
+.app{min-height:calc(100vh - 57px)}
+aside{width:232px;background:var(--panel);border-right:1px solid var(--line);padding:12px 10px;top:calc(57px + env(safe-area-inset-top,0px));height:calc(100vh - 57px);overflow:auto}
+aside small{display:block;margin:16px 10px 4px;font-size:12px;color:var(--mut);font-weight:600}
+aside button{display:flex;align-items:center;gap:10px;color:var(--ink);padding:9px 10px;border-radius:8px}
+aside button svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+aside button:hover{background:#15803d12}aside button[aria-current=page]{background:#15803d1a;color:var(--acc);font-weight:600}
+.card{box-shadow:0 1px 2px rgba(20,83,45,.07)}.grid{margin:14px 0}.grid>.card{margin:0}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}.ph h3{margin:0}
+.k2{display:flex;gap:14px;align-items:center}.k2 b{display:block;font-size:24px;line-height:1.1}.k2 span{color:var(--mut);font-size:13px}
+.ic{width:40px;height:40px;border-radius:10px;background:#15803d1a;color:var(--acc);display:grid;place-items:center;flex:none}.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:14px 0}.two .card{margin:0}
+.bar{display:grid;grid-template-columns:110px 1fr 56px;gap:8px;align-items:center;font-size:13px;margin:8px 0}.bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar i{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.bar u{display:block;height:100%;background:var(--acc)}.bar em{font-style:normal;color:var(--mut);text-align:right}
+.hero{background:linear-gradient(135deg,#14532d,#15803d 60%,#22c55e);color:#fff;border-radius:14px;padding:clamp(22px,4vw,44px);margin-top:4px}.hero h2{font-size:clamp(24px,4vw,36px);line-height:1.15;max-width:18em;margin-bottom:10px}.hero p{max-width:40em;opacity:.92;margin:0 0 16px}
+.hero button{background:#fff;color:#14532d;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;margin:4px 8px 0 0}
+footer{padding:14px clamp(14px,3vw,34px);color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
+@media(max-width:860px){.app{display:block}aside{width:auto;height:auto;position:sticky;top:calc(57px + env(safe-area-inset-top,0px));z-index:9;padding:6px;display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}aside small{display:none}aside button{width:auto;white-space:nowrap}.chip{display:none}header#top button.p{margin-left:auto}}
+</style></head><body><header id="top"><div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><div class="brand"><b>IoT Data Intelligence</b><span>Sensor analytics workspace</span></div><div class="chip" id="chip"></div><button class="p" onclick="go('up')">Upload CSV</button></header>
+<div class="app"><aside id="nav" aria-label="Main navigation"></aside><main id="main" tabindex="-1"></main></div>
+<footer>Analysis runs in your browser and your data is not uploaded. Simulated readings are not real device data.</footer>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f=(x,d=2)=>Number.isFinite(x)?(+x.toFixed(d)).toString():'–';
+const PAGES=[['ov','Overview'],['up','Upload dataset'],['ex','Data explorer'],['an','Anomaly detection'],['ml','Predictions'],['sim','IoT simulator'],['rp','Report & export']];
+let D=null,tab='ov',S=null;
+// ---------- data engine ----------
+const delim=t=>{const l=t.split(/\r?\n/)[0]||'';return[',',';','\t'].map(d=>[d,l.split(d).length]).sort((a,b)=>b[1]-a[1])[0][0]};
+const isDate=x=>/\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/.test(x)&&!isNaN(Date.parse(x));
+function parseCSV(t,d){d=d||delim(t);const R=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const h=t[i];if(q){if(h=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=h}else if(h=='"')q=true;else if(h==d){r.push(c);c=''}else if(h=='\n'||h=='\r'){if(h=='\r'&&t[i+1]=='\n')i++;r.push(c);R.push(r);r=[];c=''}else c+=h}if(c!==''||r.length){r.push(c);R.push(r)}return R.filter(r=>r.some(x=>x.trim()!==''))}
+function qt(a,p){const i=(a.length-1)*p,l=Math.floor(i);return a[l]+(a[Math.min(l+1,a.length-1)]-a[l])*(i-l)}
+function st(arr){const a=arr.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return null;const n=a.length,m=a.reduce((s,x)=>s+x,0)/n,sd=Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/Math.max(1,n-1));return{n,mean:m,sd,min:a[0],q1:qt(a,.25),median:qt(a,.5),q3:qt(a,.75),max:a[n-1]}}
+function corr(a,b){const p=[];a.forEach((x,i)=>{if(Number.isFinite(x)&&Number.isFinite(b[i]))p.push([x,b[i]])});if(p.length<3)return NaN;const mx=p.reduce((s,v)=>s+v[0],0)/p.length,my=p.reduce((s,v)=>s+v[1],0)/p.length;let sxy=0,sx=0,sy=0;p.forEach(([x,y])=>{sxy+=(x-mx)*(y-my);sx+=(x-mx)**2;sy+=(y-my)**2});return sxy/Math.sqrt(sx*sy)}
+function ingest(name,text,size){
+ if(!text.trim())throw Error('The file is empty. Choose a CSV with a header row and data.');
+ if(size>10e6)throw Error('The file is larger than the 10 MB limit.');
+ const R=parseCSV(text);if(R.length<2)throw Error('The file needs a header row and at least one data row.');
+ const cols=R[0].map((c,i)=>c.trim()||'column_'+(i+1));if(cols.length>200)throw Error('More than 200 columns.');
+ if(new Set(cols).size!==cols.length)throw Error('Column names must be unique.');
+ if(R.length-1>200000)throw Error('The file has more than 200,000 data rows, which is this page’s row limit. Split the file or use the Python core.');
+ const rows=R.slice(1).map(r=>cols.map((_,i)=>(r[i]??'').trim()));
+ const num={},types={},invalid={};let ts=-1;
+ cols.forEach((c,i)=>{const v=rows.map(r=>r[i]).filter(x=>x!=='');const nn=v.filter(x=>!isNaN(+x)).length;
+  if(v.length&&nn/v.length>=.9){types[c]='numeric';invalid[c]=v.length-nn;num[c]=rows.map(r=>r[i]===''||isNaN(+r[i])?NaN:+r[i])}
+  else if(v.length&&v.filter(isDate).length/v.length>=.8){types[c]='datetime';if(ts<0)ts=i}else types[c]='categorical'});
+ if(!Object.keys(num).length)throw Error('No numeric sensor columns were found, so there is nothing to analyse.');
+ D={name,cols,types,rows,num,ts,tsv:ts<0?null:rows.map(r=>Date.parse(r[ts])),invalid};D.p=profile();
+}
+function iqrFlags(a){const s=st(a);if(!s)return a.map(()=>false);const lo=s.q1-1.5*(s.q3-s.q1),hi=s.q3+1.5*(s.q3-s.q1);return a.map(x=>Number.isFinite(x)&&(x<lo||x>hi))}
+function profile(){const n=D.rows.length,nc=Object.keys(D.num),cells=n*D.cols.length;
+ const miss={};let mc=0;D.cols.forEach((c,i)=>{const k=D.rows.filter(r=>r[i]==='').length;miss[c]=k;mc+=k});
+ const seen=new Set();let dup=0;D.rows.forEach(r=>{const k=r.join('\u0001');seen.has(k)?dup++:seen.add(k)});
+ const out={};let oc=0;nc.forEach(c=>{out[c]=iqrFlags(D.num[c]).filter(Boolean).length;oc+=out[c]});
+ const mp=mc/cells*100,dp=dup/n*100,op=oc/(n*nc.length)*100,pen={missing:Math.min(40,2*mp),duplicates:Math.min(30,2*dp),outliers:Math.min(20,op)};
+ const score=Math.max(0,100-pen.missing-pen.duplicates-pen.outliers);
+ const stats={};nc.forEach(c=>stats[c]=st(D.num[c]));
+ const finds=[];
+ for(let i=0;i<nc.length;i++)for(let j=i+1;j<nc.length;j++){const r=corr(D.num[nc[i]],D.num[nc[j]]);if(Math.abs(r)>=.7)finds.push(`Observation: ${nc[i]} and ${nc[j]} are strongly ${r>0?'positively':'negatively'} correlated (r = ${f(r)}). Correlation alone does not show that one causes the other.`)}
+ nc.forEach(c=>{if(miss[c]/n>.05)finds.push(`Observation: ${c} is missing in ${f(miss[c]/n*100,1)}% of rows.`);if(out[c])finds.push(`Observation: ${out[c]} IQR outlier candidate(s) in ${c}. These are unusual values, not confirmed faults.`)});
+ if(dup)finds.push(`Observation: ${dup} duplicate row(s) found.`);
+ return{n,mc,mp,dup,dp,op,out,pen,score,miss,stats,finds}}
+// ---------- charts ----------
+function chart(series,marks=[],h=220){const W=720,P=38,all=series.flatMap(s=>s.v).filter(Number.isFinite);if(!all.length)return'<p class="mut">No numeric values to plot.</p>';
+ let lo=Infinity,hi=-Infinity;for(const x of all){if(x<lo)lo=x;if(x>hi)hi=x}if(lo==hi){lo-=1;hi+=1}const n0=Math.max(...series.map(s=>s.v.length)),stp=Math.max(1,Math.ceil(n0/2000)),n=Math.ceil(n0/stp),X=i=>P+(i/stp)*(W-P-6)/Math.max(1,n-1),Y=v=>h-16-(v-lo)/(hi-lo)*(h-28);
+ const paths=series.map(s=>{let d='',pen=false;s.v.forEach((v,i)=>{if(i%stp)return;if(Number.isFinite(v)){d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);pen=true}else pen=false});return`<path d="${d}" fill="none" style="stroke:var(${s.c||'--acc'})" stroke-width="1.6" ${s.dash?'stroke-dasharray="5 3"':''}/>`}).join('');
+ const dots=marks.map(i=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(series[0].v[i]).toFixed(1)}" r="3.6" style="fill:var(--c2)"/>`).join('');
+ return`<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Line chart"><g style="fill:var(--mut)" font-size="11"><text x="0" y="${Y(hi)+4}">${f(hi,1)}</text><text x="0" y="${Y(lo)+4}">${f(lo,1)}</text></g><line x1="${P}" x2="${W}" y1="${h-16}" y2="${h-16}" style="stroke:var(--line)"/>${paths}${dots}</svg>`}
+const legend=a=>'<p class="mut" style="font-size:13px">'+a.map(([c,t,d])=>`<span style="color:var(${c})">${d?'┄':'━'}</span> ${t}`).join(' &nbsp; ')+'</p>';
+const numCols=()=>Object.keys(D.num),opts=(a,sel)=>a.map(c=>`<option ${c===sel?'selected':''}>${esc(c)}</option>`).join('');
+const empty=()=>`<div class="card"><h3>No dataset loaded</h3><p class="mut">Upload a CSV or load a sample dataset to start.</p><button class="p" onclick="go('up')">Upload dataset</button> <button class="s" onclick="sample('Temperature & humidity')">Load sample data</button></div>`;
+const table=(h,rows,cls=[])=>`<div class="wrap"><table><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>`<tr class="${cls[i]||''}">${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+// ---------- pages ----------
+const V={
+ov(){if(!D)return`<div class="hero"><h2>Turn raw sensor readings into clear decisions</h2><p>Upload a CSV from your IoT devices to check data quality, spot unusual readings and test simple forecasts, all in your browser.</p><button onclick="go('up')">Upload a CSV</button><button onclick="sample('Water quality')">Try sample data</button></div><div class="grid">${[['up','Check data quality','Missing values, duplicates and outliers, scored with a transparent formula.'],['an','Find unusual readings','Adjustable anomaly detection with every flagged record listed.'],['ml','Test forecasts','A chronological train and test split compared against a simple baseline.'],['sim','Simulate devices','Virtual sensors with thresholds and alerts, clearly labelled as simulated.']].map(([i,t,d])=>`<div class="card"><div class="ic">${ico(i)}</div><h3 style="margin:10px 0 4px">${t}</h3><p class="mut" style="margin:0">${d}</p></div>`).join('')}</div>`;const p=D.p,oc=D._oc&&D.num[D._oc]?D._oc:numCols()[0];
+ return`<div class="ph"><div><h2>${esc(D.name)}</h2><p class="mut" style="margin:0">${p.n} rows, ${D.cols.length} columns. Time column: ${D.ts<0?'none detected':esc(D.cols[D.ts])}.</p></div><div><button class="s" onclick="go('ex')">Explore data</button><button class="s" onclick="go('rp')">Report</button></div></div>
+ <div class="grid">${[['up','Quality score',f(p.score,1)+' / 100'],['ex','Missing cells',f(p.mp,1)+'%'],['rp','Duplicate rows',p.dup],['an','Outlier candidates',Object.values(p.out).reduce((a,b)=>a+b,0)]].map(([i,l,v])=>`<div class="card k2"><div class="ic">${ico(i)}</div><div><b>${v}</b><span>${l}</span></div></div>`).join('')}</div>
+ <div class="two"><div class="card"><div class="ph"><h3>Sensor trend</h3><select aria-label="Sensor column" onchange="D._oc=this.value;render()">${opts(numCols(),oc)}</select></div>${chart([{v:D.num[oc]}],iqrFlags(D.num[oc]).map((x,i)=>x?i:-1).filter(i=>i>=0))}<p class="mut" style="font-size:13px;margin:0">Orange dots mark outlier candidates (IQR rule).</p></div>
+ <div class="card"><h3 style="margin:0 0 8px">Data quality</h3>${ring(p.score)}${bar('Missing',p.pen.missing,40,'-'+f(p.pen.missing,1))}${bar('Duplicates',p.pen.duplicates,30,'-'+f(p.pen.duplicates,1))}${bar('Outliers',p.pen.outliers,20,'-'+f(p.pen.outliers,1))}</div></div>
+ <div class="two"><div class="card"><h3 style="margin:0 0 8px">Missing values by column</h3>${D.cols.map(c=>bar(c,p.miss[c],p.n,f(p.miss[c]/p.n*100,1)+'%')).join('')}</div><div class="card"><h3 style="margin:0 0 8px">Correlation</h3>${heat()}</div></div>
+ <div class="card"><h3>How the score is calculated</h3><p class="mut">100 − min(40, 2×missing%) − min(30, 2×duplicate%) − min(20, outlier%). Penalties here: missing ${f(p.pen.missing)}, duplicates ${f(p.pen.duplicates)}, outliers ${f(p.pen.outliers)}. Outliers use the IQR rule (outside Q1 − 1.5×IQR to Q3 + 1.5×IQR).</p></div>
+ <div class="card"><h3>Columns</h3>${table(['Column','Type','Missing','Invalid values'],D.cols.map(c=>[c,D.types[c],p.miss[c],D.invalid[c]??0]))}</div>
+ <div class="card"><h3>Descriptive statistics</h3>${table(['Column','Count','Mean','Std','Min','Q1','Median','Q3','Max'],Object.entries(p.stats).map(([c,s])=>[c,s.n,f(s.mean),f(s.sd),f(s.min),f(s.q1),f(s.median),f(s.q3),f(s.max)]))}</div>
+ <div class="card"><h3>Key findings</h3><p class="mut">Generated from the statistics above. AI explanations are unavailable because this page has no backend or API key, so these are rule-based statistical findings, not LLM output.</p><ul>${(p.finds.length?p.finds:['No issues found by the automated checks.']).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="mut">Limitations: quality checks are statistical. They cannot confirm sensor faults or certify safety conditions such as water quality.</p></div>`},
+up(){return`<h2>Upload dataset</h2><p class="mut">CSV files up to 10 MB and 200,000 rows. Your file is processed in this browser tab and is not uploaded anywhere.</p>
+ <button class="drop" id="drop" onclick="$('#file').click()">Drop a CSV here or select a file</button><input id="file" type="file" accept=".csv,text/csv" hidden>
+ <div id="uerr"></div><div class="card"><h3>Sample datasets</h3><p class="mut">Generated hourly readings with a few injected spikes, gaps and a duplicate row.</p>${['Water quality','Air quality','Temperature & humidity','Energy consumption'].map(k=>`<button class="s" onclick="sample('${k}')">${k}</button>`).join('')}</div>
+ <p class="mut">Excel (.xlsx) upload needs the Python backend (OpenPyXL) and is not available in this page.</p>`},
+ex(){if(!D)return`<h2>Data explorer</h2>${empty()}`;const c=D._c&&D.num[D._c]?D._c:numCols()[0];D._c=c;let idx=D.rows.map((_,i)=>i);
+ if(D.tsv&&(D._from||D._to)){const a=D._from?Date.parse(D._from):-1/0,b=D._to?Date.parse(D._to)+864e5:1/0;idx=idx.filter(i=>D.tsv[i]>=a&&D.tsv[i]<b)}
+ const shown=D.cols.filter(x=>!D._hide?.includes(x));
+ return`<h2>Data explorer</h2><div class="card"><label>Chart column <select onchange="D._c=this.value;render()">${opts(numCols(),c)}</select></label>
+ ${D.tsv?` &nbsp; <label>From <input type="date" value="${D._from||''}" onchange="D._from=this.value;render()"></label> <label>To <input type="date" value="${D._to||''}" onchange="D._to=this.value;render()"></label>`:''}
+ <p class="mut">${idx.length} of ${D.rows.length} rows in range. Orange dots mark IQR outlier candidates.</p>${chart([{v:idx.map(i=>D.num[c][i])}],(()=>{const fl=iqrFlags(D.num[c]);return idx.map((i,k)=>fl[i]?k:-1).filter(k=>k>=0)})())}</div>
+ <div class="card"><b>Visible columns</b><br>${D.cols.map((x,i)=>`<label style="margin-right:12px"><input type="checkbox" ${shown.includes(x)?'checked':''} onchange="tgl(${i})"> ${esc(x)}</label>`).join('')}
+ <p class="mut">First 100 rows in range. Select a row to inspect it.</p>${table(shown,idx.slice(0,100).map(i=>shown.map(x=>D.rows[i][D.cols.indexOf(x)])))}<div id="rec"></div></div>`},
+an(){if(!D)return`<h2>Anomaly detection</h2>${empty()}`;const nc=numCols();D._ac=D._ac||nc.slice(0,2);const k=D._k||3.5;
+ const flags=D.rows.map((_,i)=>D._ac.some(c=>{const s=(D._ms=D._ms||{})[c]||(D._ms[c]=ms(D.num[c]));const x=D.num[c][i];return Number.isFinite(x)&&Math.abs(s.d*(x-s.m))>k}));
+ const ix=flags.map((x,i)=>x?i:-1).filter(i=>i>=0);
+ return`<h2>Anomaly detection</h2><p class="mut">Robust z-score on the median and MAD. This browser version is simpler than the Isolation Forest in the Python core, and it checks each column on its own.</p>
+ <div class="card"><b>Sensor columns</b><br>${nc.map((c,i)=>`<label style="margin-right:12px"><input type="checkbox" ${D._ac.includes(c)?'checked':''} onchange="atg(${i})"> ${esc(c)}</label>`).join('')}
+ <p><label>Threshold <input type="range" min="2" max="8" step=".5" value="${k}" oninput="D._k=+this.value;render()"> ${k}</label> <span class="mut">Lower flags more records.</span></p>
+ <p><b>${ix.length}</b> of ${D.rows.length} records flagged.</p>${D._ac.length?chart([{v:D.num[D._ac[0]]}],ix.filter(i=>Number.isFinite(D.num[D._ac[0]][i]))):''}
+ ${table([...D._ac.length?[D.ts>=0?D.cols[D.ts]:'row']:[],...D._ac],ix.slice(0,50).map(i=>[D.ts>=0?D.rows[i][D.ts]:i+1,...D._ac.map(c=>f(D.num[c][i]))]))}
+ <p class="mut">Anomalies are statistically unusual readings. They are not necessarily equipment failures or dangerous conditions.</p></div>`},
+ml(){if(!D)return`<h2>Predictions</h2>${empty()}`;const t=D._t&&D.num[D._t]?D._t:numCols()[0];D._t=t;const r=forecast(t);
+ return`<h2>Predictions</h2><p class="mut">One-step-ahead forecast from the target’s previous 3 readings, trained on the earlier 80% of rows and tested on the later 20%.</p>
+ <div class="card"><label>Target <select onchange="D._t=this.value;render()">${opts(numCols(),t)}</select></label>${r.err?`<div class="err">${esc(r.err)}</div>`:`
+ ${chart([{v:r.act},{v:r.lr,c:'--c2',dash:1},{v:r.base,c:'--mut',dash:1}])}${legend([['--acc','Actual'],['--c2','Linear regression',1],['--mut','Baseline (previous value)',1]])}
+ ${table(['Model','MAE','RMSE','R²'],r.m.map(x=>[x.n,f(x.mae,3),f(x.rmse,3),f(x.r2,3)]))}<p class="mut">Train rows: ${r.tr}, test rows: ${r.te}. Metrics describe these held-out rows only, and a good score here does not guarantee accuracy on future data. A model that cannot beat the baseline adds little. Random Forest is in the Python core, not this page.</p>`}</div>`},
+sim(){return`<h2>IoT simulator <span class="sim">SIMULATED DATA</span></h2><p class="mut">Readings are generated in your browser with random noise, about 5% missing values and occasional spikes. They are not from real devices.</p>
+ <div class="card"><button class="p" id="pb" onclick="S.paused=!S.paused;this.textContent=S.paused?'Resume':'Pause'">${S.paused?'Resume':'Pause'}</button> <button class="s" onclick="addDev()">Add device</button> <button class="s" onclick="S.alerts=[];live()">Clear alerts</button>
+ <p><b>Alert thresholds (max)</b> ${Object.keys(PROF).map(k=>`<label style="margin-right:10px">${k} <input type="number" style="width:70px" value="${S.thr[k]}" onchange="S.thr['${k}']=+this.value"></label>`).join('')}</p></div><div id="live"></div>`},
+rp(){if(!D)return`<h2>Report & export</h2>${empty()}`;const p=D.p;D._ops=D._ops||{dup:true,fill:false};const cl=cleaned();
+ const txt=`Dataset: ${D.name}\nRows: ${p.n}  Columns: ${D.cols.length}\nQuality score: ${f(p.score,1)}/100\nMissing cells: ${p.mc} (${f(p.mp,1)}%)  Duplicate rows: ${p.dup}\n\nColumn,Count,Mean,Std,Min,Median,Max,IQR outliers\n${Object.entries(p.stats).map(([c,s])=>[c,s.n,f(s.mean,4),f(s.sd,4),f(s.min,4),f(s.median,4),f(s.max,4),p.out[c]].join(',')).join('\n')}\n\nFindings:\n${p.finds.join('\n')}\n\nLimitations: statistical checks only; not a certification of device or environmental safety.`;
+ return`<h2>Report & export</h2><div class="card"><h3>Analysis summary</h3><p class="mut">Built from the computed results. Hosted pages can’t save files directly, so copy the text. PDF reports come from the Python core.</p><textarea id="t1" readonly>${esc(txt)}</textarea><br><button class="s" onclick="cp('t1')">Copy summary</button></div>
+ <div class="card"><h3>Clean dataset (preview)</h3><p class="mut">Your original data is never changed.</p><label><input type="checkbox" ${D._ops.dup?'checked':''} onchange="D._ops.dup=this.checked;render()"> Remove duplicate rows</label> <label><input type="checkbox" ${D._ops.fill?'checked':''} onchange="D._ops.fill=this.checked;render()"> Fill missing numbers with the column median</label>
+ <p><b>Preview:</b> ${p.n} rows → ${cl.rows.length} rows; ${cl.filled} cell(s) filled.</p><textarea id="t2" readonly>${esc(cl.csv)}</textarea><br><button class="s" onclick="cp('t2')">Copy cleaned CSV</button></div>`}
+};
+const IC={ov:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',up:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',ex:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',an:'<path d="M12 3l10 18H2zM12 10v5M12 18v.5"/>',ml:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',sim:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',rp:'<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6"/>'};
+const ico=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`,PL=Object.fromEntries(PAGES),GR=[['Dashboard',['ov']],['Data',['up','ex']],['Intelligence',['an','ml']],['Operations',['sim','rp']]];
+const bar=(l,v,max,lab)=>`<div class="bar"><span title="${esc(l)}">${esc(l)}</span><i><u style="width:${max?Math.min(100,v/max*100):0}%"></u></i><em>${lab}</em></div>`;
+const ring=s=>{const r=44,c=2*Math.PI*r;return`<svg viewBox="0 0 120 120" style="max-width:150px;margin:0 auto 8px" role="img" aria-label="Quality score ${f(s,0)} of 100"><circle cx="60" cy="60" r="${r}" fill="none" stroke-width="11" style="stroke:var(--line)"/><circle cx="60" cy="60" r="${r}" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="${c*s/100} ${c}" transform="rotate(-90 60 60)" style="stroke:var(--acc)"/><text x="60" y="67" text-anchor="middle" font-size="26" font-weight="700" style="fill:var(--ink)">${f(s,0)}</text></svg>`};
+const heat=()=>{const nc=numCols().slice(0,6);if(nc.length<2)return'<p class="mut">Needs at least two numeric columns.</p>';return`<div class="wrap"><table><thead><tr><th></th>${nc.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${nc.map(a=>`<tr><th>${esc(a)}</th>${nc.map(b=>{const r=corr(D.num[a],D.num[b]),al=Number.isFinite(r)?Math.abs(r):0;return`<td style="background:${r<0?'rgba(217,83,30,':'rgba(21,128,61,'}${(al*.85).toFixed(2)});color:${al>.55?'#fff':'var(--ink)'}">${f(r)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div><p class="mut" style="font-size:13px;margin:8px 0 0">Green is positive, orange is negative. Correlation does not show cause.</p>`};
+// ---------- helpers ----------
+function ms(a){const s=st(a),v=a.filter(Number.isFinite).sort((x,y)=>x-y),m=qt(v,.5),mad=qt(v.map(x=>Math.abs(x-m)).sort((x,y)=>x-y),.5);return{m,d:mad>0?.6745/mad:(s.sd>0?1/s.sd:0)}}
+function forecast(c){let ix=D.rows.map((_,i)=>i);if(D.tsv)ix=ix.filter(i=>Number.isFinite(D.tsv[i])).sort((a,b)=>D.tsv[a]-D.tsv[b]);const y=ix.map(i=>D.num[c][i]).filter(Number.isFinite);
+ if(y.length<30)return{err:`Only ${y.length} usable readings. At least 30 are needed for a reliable prediction.`};
+ const X=[],T=[];for(let t=3;t<y.length;t++){X.push([1,y[t-1],y[t-2],y[t-3]]);T.push(y[t])}const cut=Math.floor(X.length*.8);
+ if(X.length-cut<5)return{err:'Too few test rows after splitting.'};
+ const w=ols(X.slice(0,cut),T.slice(0,cut));if(!w.every(Number.isFinite))return{err:'The model could not be fitted on this data.'};const act=T.slice(cut),lr=X.slice(cut).map(r=>r.reduce((s,v,i)=>s+v*w[i],0)),base=X.slice(cut).map(r=>r[1]);
+ return{act,lr,base,tr:cut,te:act.length,m:[{n:'Baseline (previous value)',...met(act,base)},{n:'Linear regression',...met(act,lr)}]}}
+function met(a,p){const n=a.length,e=a.map((x,i)=>x-p[i]),m=a.reduce((s,x)=>s+x,0)/n,ss=a.reduce((s,x)=>s+(x-m)**2,0);return{mae:e.reduce((s,x)=>s+Math.abs(x),0)/n,rmse:Math.sqrt(e.reduce((s,x)=>s+x*x,0)/n),r2:ss?1-e.reduce((s,x)=>s+x*x,0)/ss:NaN}}
+function ols(X,y){const k=X[0].length,A=Array.from({length:k},()=>Array(k+1).fill(0));X.forEach((r,t)=>{for(let i=0;i<k;i++){for(let j=0;j<k;j++)A[i][j]+=r[i]*r[j];A[i][k]+=r[i]*y[t]}});for(let i=0;i<k;i++)A[i][i]+=1e-6;
+ for(let i=0;i<k;i++){let p=i;for(let r=i+1;r<k;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];for(let r=0;r<k;r++)if(r!==i){const m=A[r][i]/A[i][i];for(let c=i;c<=k;c++)A[r][c]-=m*A[i][c]}}return A.map((r,i)=>r[k]/r[i])}
+function cleaned(){const med={};numCols().forEach(c=>med[c]=st(D.num[c]).median);let rows=D.rows.map(r=>r.slice()),filled=0;
+ if(D._ops.fill)rows.forEach(r=>D.cols.forEach((c,i)=>{if(r[i]===''&&med[c]!==undefined){r[i]=String(med[c]);filled++}}));
+ if(D._ops.dup){const s=new Set();rows=rows.filter(r=>{const k=r.join('\u0001');if(s.has(k))return false;s.add(k);return true})}
+ const q=x=>/[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;return{rows,filled,csv:[D.cols,...rows].map(r=>r.map(q).join(',')).join('\n')}}
+function cp(id){const t=$('#'+id);t.select();try{document.execCommand('copy')}catch(e){}}
+function tgl(k){const c=D.cols[k];D._hide=D._hide||[];const i=D._hide.indexOf(c);i<0?D._hide.push(c):D._hide.splice(i,1);render()}
+function atg(k){const c=numCols()[k];const i=D._ac.indexOf(c);i<0?D._ac.push(c):D._ac.splice(i,1);render()}
+const KS={'Water quality':[['ph',7.2,.15],['turbidity_ntu',3,.8],['temp_c',18,1.2]],'Air quality':[['pm25',22,6],['co2_ppm',520,40],['temp_c',24,2]],'Temperature & humidity':[['temperature',24,2.5],['humidity',55,6]],'Energy consumption':[['kw',1.4,.3],['voltage',230,3]]};
+function sample(k){let seed=k.length*7919;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647,g=()=>Math.sqrt(-2*Math.log(rnd()+1e-9))*Math.cos(2*Math.PI*rnd());
+ const sp=KS[k],n=240,rows=[];for(let i=0;i<n;i++){const t=new Date(Date.UTC(2026,0,1)+i*36e5).toISOString().slice(0,19).replace('T',' ');rows.push([t,...sp.map(([,mu,sd],j)=>(mu+sd*(.8*Math.sin(i*Math.PI/12+j)+.5*g())).toFixed(2))])}
+ for(let j=0;j<4;j++)rows[Math.floor(rnd()*n)][1]=(sp[0][1]+sp[0][2]*7).toFixed(2);for(let j=0;j<5;j++)rows[Math.floor(rnd()*n)][2]='';rows.push(rows[10].slice());
+ try{ingest(k+' (sample)',[['timestamp',...sp.map(s=>s[0])],...rows].map(r=>r.join(',')).join('\n'),0);D._c=null;go('ov')}catch(e){alert(e.message)}}
+function loadFile(file){const e=$('#uerr');e.innerHTML='';if(!/\.csv$/i.test(file.name)){e.innerHTML='<div class="err">Unsupported file type. Upload a .csv file.</div>';return}
+ const r=new FileReader();r.onerror=()=>e.innerHTML='<div class="err">The file could not be read.</div>';r.onload=()=>{try{ingest(file.name,r.result,file.size);go('ov')}catch(x){e.innerHTML=`<div class="err">${esc(x.message)}</div>`}};r.readAsText(file)}
+// ---------- simulator ----------
+const PROF={temperature:[24,3,'°C',30],humidity:[55,8,'%',75],air_quality:[60,20,'AQI',100],water_ph:[7.2,.3,'pH',7.8],energy:[1.2,.4,'kW',2.2]};
+S={paused:false,dev:[{id:'dev-1',s:'temperature'},{id:'dev-2',s:'humidity'},{id:'dev-3',s:'air_quality'},{id:'dev-4',s:'energy'}],hist:{},alerts:[],thr:Object.fromEntries(Object.entries(PROF).map(([k,v])=>[k,v[3]]))};
+function addDev(){const ks=Object.keys(PROF),k=ks[S.dev.length%ks.length];S.dev.push({id:'dev-'+(S.dev.length+1),s:k});live()}
+function tick(){if(S.paused)return;S.dev.forEach(d=>{const[mu,sd]=PROF[d.s],r=Math.random();let v=mu+sd*(Math.random()+Math.random()+Math.random()-1.5)*1.6;if(r<.05)v=NaN;else if(r<.08)v=mu+(Math.random()<.5?-1:1)*sd*4.5;
+ (S.hist[d.id]=S.hist[d.id]||[]).push(v);if(S.hist[d.id].length>60)S.hist[d.id].shift();if(Number.isFinite(v)&&v>S.thr[d.s])S.alerts.unshift(`${new Date().toLocaleTimeString()} ${d.id} (${d.s}) read ${f(v)} ${PROF[d.s][2]}, above ${S.thr[d.s]}`)});S.alerts=S.alerts.slice(0,8);live()}
+function live(){const el=$('#live');if(!el)return;el.innerHTML=`<div class="grid">${S.dev.map(d=>{const h=S.hist[d.id]||[],v=h[h.length-1];return`<div class="card kpi"><b>${h.length?(Number.isFinite(v)?f(v)+' '+PROF[d.s][2]:'missing'):'–'}</b><span>${d.id} · ${d.s} <span class="sim">sim</span></span>${chart([{v:h}],[],70)}</div>`}).join('')}</div>
+ <div class="card"><h3>Alerts</h3>${S.alerts.length?'<ul>'+S.alerts.map(a=>`<li>${esc(a)}</li>`).join('')+'</ul>':'<p class="mut">No threshold crossings yet.</p>'}</div>`}
+setInterval(tick,1000);
+// ---------- shell ----------
+function go(t){tab=t;render();$('#main').focus()}
+function render(){D&&(D._ms=D._ms||{});$('#nav').innerHTML=GR.map(([g,ks])=>`<small>${g}</small>`+ks.map(k=>`<button ${k===tab?'aria-current="page"':''} onclick="go('${k}')">${ico(k)}${PL[k]}</button>`).join('')).join('');$('#chip').innerHTML=D?`<span class="dot on"></span>${esc(D.name)}`:'<span class="dot"></span>No dataset loaded';
+ try{$('#main').innerHTML=V[tab]()}catch(e){$('#main').innerHTML=`<div class="err">Something went wrong rendering this page: ${esc(e.message)}</div>`}
+ if(tab==='sim')live();if(tab==='ex')document.querySelectorAll('#main tbody tr').forEach((tr,i)=>tr.onclick=()=>{const ix=[...tr.parentNode.children].indexOf(tr);$('#rec').innerHTML='<p class="mut">Selected row</p><pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(Object.fromEntries(tr.children.length?[...tr.children].map((td,j)=>[td.closest('table').tHead.rows[0].cells[j].textContent,td.textContent]):[]),null,1))+'</pre>'});
+ if(tab==='up'){const dz=$('#drop'),fi=$('#file');fi.onchange=()=>fi.files[0]&&loadFile(fi.files[0]);['dragover','dragenter'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.add('on')}));['dragleave','drop'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.remove('on')}));dz.addEventListener('drop',x=>x.dataTransfer.files[0]&&loadFile(x.dataTransfer.files[0]))}}
+render();
+</script></body></html>
