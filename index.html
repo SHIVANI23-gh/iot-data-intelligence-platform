@@ -18,7 +18,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-visibl
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}tr.f td{color:var(--c2);font-weight:600}tbody tr:hover{background:#15803d14}
 select,input[type=date],input[type=number]{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
 svg{width:100%;height:auto;display:block}.tag{display:inline-block;padding:1px 8px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
-.sim{border:1px solid var(--c2);color:var(--c2);padding:1px 8px;border-radius:5px;font-size:12px}textarea{width:100%;height:150px;font:12px monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+textarea{width:100%;height:150px;font:12px monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
 @media(max-width:760px){.app{display:block}aside{width:auto;height:auto;position:sticky;top:0;z-index:5;padding:8px;display:flex;gap:4px;overflow-x:auto}aside h1{display:none}aside button{width:auto;white-space:nowrap}}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--panel)}
 header#top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;display:flex;align-items:center;gap:12px;padding:10px clamp(14px,3vw,28px);background:var(--panel);border-bottom:1px solid var(--line)}
@@ -42,14 +42,15 @@ aside button:hover{background:#15803d12}aside button[aria-current=page]{backgrou
 .hero button{background:#fff;color:#14532d;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;margin:4px 8px 0 0}
 footer{padding:14px clamp(14px,3vw,34px);color:var(--mut);font-size:12px;border-top:1px solid var(--line)}
 @media(max-width:860px){.app{display:block}aside{width:auto;height:auto;position:sticky;top:calc(57px + env(safe-area-inset-top,0px));z-index:9;padding:6px;display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}aside small{display:none}aside button{width:auto;white-space:nowrap}.chip{display:none}header#top button.p{margin-left:auto}}
+.ed td{padding:2px 4px}.ed input{width:100%;min-width:90px;border:1px solid transparent;background:transparent;color:var(--ink);font:inherit;padding:4px 6px;border-radius:4px}.ed input[type=checkbox]{min-width:0;width:auto}.ed input:focus{border-color:var(--acc);background:var(--panel)}.ed td.mc input{background:#fbe3d6;color:#0f2a1c}button:disabled{opacity:.5;cursor:not-allowed}details summary{cursor:pointer}
 </style></head><body><header id="top"><div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><div class="brand"><b>IoT Data Intelligence</b><span>Sensor analytics workspace</span></div><div class="chip" id="chip"></div><button class="p" onclick="go('up')">Upload CSV</button></header>
 <div class="app"><aside id="nav" aria-label="Main navigation"></aside><main id="main" tabindex="-1"></main></div>
-<footer>Analysis runs in your browser and your data is not uploaded. Simulated readings are not real device data.</footer>
+<footer>Analysis runs in your browser and your data is not uploaded.</footer>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const f=(x,d=2)=>Number.isFinite(x)?(+x.toFixed(d)).toString():'–';
-const PAGES=[['ov','Overview'],['up','Upload dataset'],['ex','Data explorer'],['an','Anomaly detection'],['ml','Predictions'],['sim','IoT simulator'],['rp','Report & export']];
-let D=null,tab='ov',S=null;
+const PAGES=[['ov','Overview'],['up','Upload dataset'],['ex','Data explorer'],['cl','Clean data'],['ed','Edit data'],['an','Anomaly detection'],['ml','Predictions'],['rp','Report & export']];
+let D=null,tab='ov';
 // ---------- data engine ----------
 const delim=t=>{const l=t.split(/\r?\n/)[0]||'';return[',',';','\t'].map(d=>[d,l.split(d).length]).sort((a,b)=>b[1]-a[1])[0][0]};
 const isDate=x=>/\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}/.test(x)&&!isNaN(Date.parse(x));
@@ -64,14 +65,10 @@ function ingest(name,text,size){
  const cols=R[0].map((c,i)=>c.trim()||'column_'+(i+1));if(cols.length>200)throw Error('More than 200 columns.');
  if(new Set(cols).size!==cols.length)throw Error('Column names must be unique.');
  if(R.length-1>200000)throw Error('The file has more than 200,000 data rows, which is this page’s row limit. Split the file or use the Python core.');
- const rows=R.slice(1).map(r=>cols.map((_,i)=>(r[i]??'').trim()));
- const num={},types={},invalid={};let ts=-1;
- cols.forEach((c,i)=>{const v=rows.map(r=>r[i]).filter(x=>x!=='');const nn=v.filter(x=>!isNaN(+x)).length;
-  if(v.length&&nn/v.length>=.9){types[c]='numeric';invalid[c]=v.length-nn;num[c]=rows.map(r=>r[i]===''||isNaN(+r[i])?NaN:+r[i])}
-  else if(v.length&&v.filter(isDate).length/v.length>=.8){types[c]='datetime';if(ts<0)ts=i}else types[c]='categorical'});
- if(!Object.keys(num).length)throw Error('No numeric sensor columns were found, so there is nothing to analyse.');
- D={name,cols,types,rows,num,ts,tsv:ts<0?null:rows.map(r=>Date.parse(r[ts])),invalid};D.p=profile();
-}
+ const rows=R.slice(1).map(r=>cols.map((_,i)=>(r[i]??'').trim())),prev=D;
+ D={name,cols,rows,orig:{cols,rows},undo:[],redo:[],log:[],sel:new Set()};
+ try{refresh();if(!Object.keys(D.num).length)throw Error('No numeric sensor columns were found, so there is nothing to analyse.')}catch(e){D=prev;throw e}
+ D.p0=D.p}
 function iqrFlags(a){const s=st(a);if(!s)return a.map(()=>false);const lo=s.q1-1.5*(s.q3-s.q1),hi=s.q3+1.5*(s.q3-s.q1);return a.map(x=>Number.isFinite(x)&&(x<lo||x>hi))}
 function profile(){const n=D.rows.length,nc=Object.keys(D.num),cells=n*D.cols.length;
  const miss={};let mc=0;D.cols.forEach((c,i)=>{const k=D.rows.filter(r=>r[i]==='').length;miss[c]=k;mc+=k});
@@ -97,8 +94,8 @@ const empty=()=>`<div class="card"><h3>No dataset loaded</h3><p class="mut">Uplo
 const table=(h,rows,cls=[])=>`<div class="wrap"><table><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>`<tr class="${cls[i]||''}">${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 // ---------- pages ----------
 const V={
-ov(){if(!D)return`<div class="hero"><h2>Turn raw sensor readings into clear decisions</h2><p>Upload a CSV from your IoT devices to check data quality, spot unusual readings and test simple forecasts, all in your browser.</p><button onclick="go('up')">Upload a CSV</button><button onclick="sample('Water quality')">Try sample data</button></div><div class="grid">${[['up','Check data quality','Missing values, duplicates and outliers, scored with a transparent formula.'],['an','Find unusual readings','Adjustable anomaly detection with every flagged record listed.'],['ml','Test forecasts','A chronological train and test split compared against a simple baseline.'],['sim','Simulate devices','Virtual sensors with thresholds and alerts, clearly labelled as simulated.']].map(([i,t,d])=>`<div class="card"><div class="ic">${ico(i)}</div><h3 style="margin:10px 0 4px">${t}</h3><p class="mut" style="margin:0">${d}</p></div>`).join('')}</div>`;const p=D.p,oc=D._oc&&D.num[D._oc]?D._oc:numCols()[0];
- return`<div class="ph"><div><h2>${esc(D.name)}</h2><p class="mut" style="margin:0">${p.n} rows, ${D.cols.length} columns. Time column: ${D.ts<0?'none detected':esc(D.cols[D.ts])}.</p></div><div><button class="s" onclick="go('ex')">Explore data</button><button class="s" onclick="go('rp')">Report</button></div></div>
+ov(){if(!D)return`<div class="hero"><h2>Turn raw sensor readings into clear decisions</h2><p>Upload a CSV from your IoT devices to check data quality, spot unusual readings and test simple forecasts, all in your browser.</p><button onclick="go('up')">Upload a CSV</button><button onclick="sample('Water quality')">Try sample data</button></div><div class="grid">${[['up','Check data quality','Missing values, duplicates and outliers, scored with a transparent formula.'],['an','Find unusual readings','Adjustable anomaly detection with every flagged record listed.'],['ml','Test forecasts','A chronological train and test split compared against a simple baseline.']].map(([i,t,d])=>`<div class="card"><div class="ic">${ico(i)}</div><h3 style="margin:10px 0 4px">${t}</h3><p class="mut" style="margin:0">${d}</p></div>`).join('')}</div>`;const p=D.p,oc=D._oc&&D.num[D._oc]?D._oc:numCols()[0];
+ return`<div class="ph"><div><h2>${esc(D.name)}</h2><p class="mut" style="margin:0">${p.n} rows, ${D.cols.length} columns. Time column: ${D.ts<0?'none detected':esc(D.cols[D.ts])}.</p></div><div><button class="s" onclick="go('ex')">Explore data</button><button class="s" onclick="go('cl')">Clean data</button><button class="s" onclick="go('rp')">Report</button></div></div>
  <div class="grid">${[['up','Quality score',f(p.score,1)+' / 100'],['ex','Missing cells',f(p.mp,1)+'%'],['rp','Duplicate rows',p.dup],['an','Outlier candidates',Object.values(p.out).reduce((a,b)=>a+b,0)]].map(([i,l,v])=>`<div class="card k2"><div class="ic">${ico(i)}</div><div><b>${v}</b><span>${l}</span></div></div>`).join('')}</div>
  <div class="two"><div class="card"><div class="ph"><h3>Sensor trend</h3><select aria-label="Sensor column" onchange="D._oc=this.value;render()">${opts(numCols(),oc)}</select></div>${chart([{v:D.num[oc]}],iqrFlags(D.num[oc]).map((x,i)=>x?i:-1).filter(i=>i>=0))}<p class="mut" style="font-size:13px;margin:0">Orange dots mark outlier candidates (IQR rule).</p></div>
  <div class="card"><h3 style="margin:0 0 8px">Data quality</h3>${ring(p.score)}${bar('Missing',p.pen.missing,40,'-'+f(p.pen.missing,1))}${bar('Duplicates',p.pen.duplicates,30,'-'+f(p.pen.duplicates,1))}${bar('Outliers',p.pen.outliers,20,'-'+f(p.pen.outliers,1))}</div></div>
@@ -133,20 +130,158 @@ ml(){if(!D)return`<h2>Predictions</h2>${empty()}`;const t=D._t&&D.num[D._t]?D._t
  <div class="card"><label>Target <select onchange="D._t=this.value;render()">${opts(numCols(),t)}</select></label>${r.err?`<div class="err">${esc(r.err)}</div>`:`
  ${chart([{v:r.act},{v:r.lr,c:'--c2',dash:1},{v:r.base,c:'--mut',dash:1}])}${legend([['--acc','Actual'],['--c2','Linear regression',1],['--mut','Baseline (previous value)',1]])}
  ${table(['Model','MAE','RMSE','R²'],r.m.map(x=>[x.n,f(x.mae,3),f(x.rmse,3),f(x.r2,3)]))}<p class="mut">Train rows: ${r.tr}, test rows: ${r.te}. Metrics describe these held-out rows only, and a good score here does not guarantee accuracy on future data. A model that cannot beat the baseline adds little. Random Forest is in the Python core, not this page.</p>`}</div>`},
-sim(){return`<h2>IoT simulator <span class="sim">SIMULATED DATA</span></h2><p class="mut">Readings are generated in your browser with random noise, about 5% missing values and occasional spikes. They are not from real devices.</p>
- <div class="card"><button class="p" id="pb" onclick="S.paused=!S.paused;this.textContent=S.paused?'Resume':'Pause'">${S.paused?'Resume':'Pause'}</button> <button class="s" onclick="addDev()">Add device</button> <button class="s" onclick="S.alerts=[];live()">Clear alerts</button>
- <p><b>Alert thresholds (max)</b> ${Object.keys(PROF).map(k=>`<label style="margin-right:10px">${k} <input type="number" style="width:70px" value="${S.thr[k]}" onchange="S.thr['${k}']=+this.value"></label>`).join('')}</p></div><div id="live"></div>`},
-rp(){if(!D)return`<h2>Report & export</h2>${empty()}`;const p=D.p;D._ops=D._ops||{dup:true,fill:false};const cl=cleaned();
- const txt=`Dataset: ${D.name}\nRows: ${p.n}  Columns: ${D.cols.length}\nQuality score: ${f(p.score,1)}/100\nMissing cells: ${p.mc} (${f(p.mp,1)}%)  Duplicate rows: ${p.dup}\n\nColumn,Count,Mean,Std,Min,Median,Max,IQR outliers\n${Object.entries(p.stats).map(([c,s])=>[c,s.n,f(s.mean,4),f(s.sd,4),f(s.min,4),f(s.median,4),f(s.max,4),p.out[c]].join(',')).join('\n')}\n\nFindings:\n${p.finds.join('\n')}\n\nLimitations: statistical checks only; not a certification of device or environmental safety.`;
- return`<h2>Report & export</h2><div class="card"><h3>Analysis summary</h3><p class="mut">Built from the computed results. Hosted pages can’t save files directly, so copy the text. PDF reports come from the Python core.</p><textarea id="t1" readonly>${esc(txt)}</textarea><br><button class="s" onclick="cp('t1')">Copy summary</button></div>
- <div class="card"><h3>Clean dataset (preview)</h3><p class="mut">Your original data is never changed.</p><label><input type="checkbox" ${D._ops.dup?'checked':''} onchange="D._ops.dup=this.checked;render()"> Remove duplicate rows</label> <label><input type="checkbox" ${D._ops.fill?'checked':''} onchange="D._ops.fill=this.checked;render()"> Fill missing numbers with the column median</label>
- <p><b>Preview:</b> ${p.n} rows → ${cl.rows.length} rows; ${cl.filled} cell(s) filled.</p><textarea id="t2" readonly>${esc(cl.csv)}</textarea><br><button class="s" onclick="cp('t2')">Copy cleaned CSV</button></div>`}
+cl(){if(!D)return`<h2>Clean data</h2>${empty()}`;const p=D.p,ix=D.cols.map((c,i)=>[c,i]),fm=ix.filter(([c])=>p.miss[c]>0),om=ix.filter(([c])=>D.types[c]==='numeric'&&p.out[c]>0),dupRows=[];
+ {const seen=new Set();D.rows.forEach((r,k)=>{const s=r.join('\u0001');if(seen.has(s)){if(dupRows.length<8)dupRows.push(k)}else seen.add(s)})}
+ const anyMiss=D.rows.filter(r=>r.includes('')).length;
+ return`<h2>Clean data</h2><p class="mut">You decide what happens to each problem. Nothing changes until you press Apply, every step can be undone, and your original upload is always kept.</p>${ebar()}
+ <div class="card"><h3>Missing values</h3>${fm.length?`<div class="wrap"><table><thead><tr><th>Column</th><th>Type</th><th>Missing</th><th>What to do</th><th>Preview</th><th></th></tr></thead><tbody>${fm.map(([c,i])=>{const m=(D._m||{})[c]||defM(c),cv=(D._cv||{})[c]||'';return`<tr><td>${esc(c)}</td><td>${D.types[c]}</td><td>${p.miss[c]} (${f(p.miss[c]/p.n*100,1)}%)</td><td><select aria-label="Method for ${esc(c)}" onchange="setM(${i},this.value)">${opt(D.types[c]==='numeric'?FM_NUM:FM_TXT,m)}</select>${m==='custom'?` <input aria-label="Value for ${esc(c)}" value="${esc(cv)}" placeholder="value" style="width:90px" onchange="setCv(${i},this.value)">`:''}</td><td class="mut">${esc(prevFill(c,m,cv))}</td><td><button class="p" onclick="doFill(${i})">Apply</button></td></tr>`}).join('')}</tbody></table></div>
+ <p style="margin-top:12px"><b>All numeric columns at once:</b> <select id="bulkm" aria-label="Method for all numeric columns"><option value="median">Fill with median</option><option value="mean">Fill with mean</option><option value="interp">Fill by linear interpolation</option><option value="ffill">Fill with previous value</option><option value="bfill">Fill with next value</option><option value="delete">Delete the rows</option></select> <button class="p" onclick="doFillAll()">Apply to all</button> <button class="s" onclick="doDelAnyMissing()">Delete all ${anyMiss} rows that have any missing value</button></p>`:'<p class="mut">No missing values.</p>'}</div>
+ <div class="card"><h3>Duplicate rows</h3>${p.dup?`<p>${p.dup} duplicate row(s) found. Examples (row numbers are positions in the current data):</p>${table(['Row',...D.cols.slice(0,6)],dupRows.map(k=>[k+1,...D.rows[k].slice(0,6)]))}<p style="margin-top:10px"><button class="p" onclick="doDup('first')">Remove duplicates, keep first</button> <button class="s" onclick="doDup('last')">Remove duplicates, keep last</button></p>`:'<p class="mut">No duplicate rows.</p>'}</div>
+ <div class="card"><h3>Outliers (IQR rule)</h3>${om.length?`<p class="mut">Outliers can be real events. Nothing happens until you press Apply.</p><div class="wrap"><table><thead><tr><th>Column</th><th>Outliers</th><th>What to do</th><th></th></tr></thead><tbody>${om.map(([c,i])=>`<tr><td>${esc(c)}</td><td>${p.out[c]}</td><td><select aria-label="Outlier action for ${esc(c)}" onchange="setO(${i},this.value)">${opt(OM,(D._o||{})[c]||'cap')}</select></td><td><button class="p" onclick="doOut(${i})">Apply</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="mut">No outlier candidates.</p>'}</div>`},
+ed(){if(!D)return`<h2>Edit data</h2>${empty()}`;const PS=25,view=D._onlyMiss?D.rows.map((r,k)=>r.includes('')?k:-1).filter(k=>k>=0):null,total=view?view.length:D.rows.length,pages=Math.max(1,Math.ceil(total/PS)),pg=Math.min(Math.max(D._pg||0,0),pages-1),ids=Array.from({length:Math.min(PS,total-pg*PS)},(_,q)=>view?view[pg*PS+q]:pg*PS+q);
+ return`<h2>Edit data</h2><p class="mut">Click any cell to change it, then press Enter or click away to save. Leave a cell empty to mark it as missing.</p>${ebar()}
+ <div class="card"><div class="ph"><label><input type="checkbox" ${D._onlyMiss?'checked':''} onchange="D._onlyMiss=this.checked;D._pg=0;render()"> Show only rows with missing values</label><button class="s" ${D.sel.size?'':'disabled'} onclick="doDelSel()">Delete selected rows (${D.sel.size})</button></div>
+ <div class="wrap ed"><table><thead><tr><th></th><th>#</th>${D.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${ids.map(k=>`<tr><td><input type="checkbox" aria-label="Select row ${k+1}" ${D.sel.has(k)?'checked':''} onchange="selRow(${k})"></td><td>${k+1}</td>${D.rows[k].map((v,j)=>`<td class="${v===''?'mc':''}"><input aria-label="Row ${k+1}, ${esc(D.cols[j])}" value="${esc(v)}" onchange="edit(${k},${j},this.value)"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p class="mut">Rows ${total?pg*PS+1:0} to ${pg*PS+ids.length} of ${total}. <button class="s" ${pg?'':'disabled'} onclick="pgo(-1)">Previous</button> <button class="s" ${pg<pages-1?'':'disabled'} onclick="pgo(1)">Next</button></p></div>
+ <div class="card"><h3>Find and replace</h3><label>In <select id="frc"><option value="*">all columns</option>${D.cols.map((c,j)=>`<option value="${j}">${esc(c)}</option>`).join('')}</select></label> <label>find <input id="frf" style="width:120px"></label> <label>replace with <input id="frr" style="width:120px"></label> <label><input type="checkbox" id="frw"> whole cell only</label> <button class="p" onclick="doReplace()">Replace all</button><p class="mut" style="margin-bottom:0">Example: find N/A, replace with nothing, whole cell only, to turn N/A markers into missing values.</p></div>
+ <div class="card"><h3>Columns</h3><p class="mut">Rename a column by editing its name. You cannot delete the last numeric column.</p><div class="wrap"><table><tbody>${D.cols.map((c,j)=>`<tr><td><input aria-label="Name of column ${j+1}" value="${esc(c)}" style="width:100%;min-width:140px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--panel);color:var(--ink);font:inherit" onchange="doRename(${j},this.value)"></td><td class="mut">${D.types[c]}</td><td><button class="s" onclick="doDelCol(${j})">Delete column</button></td></tr>`).join('')}</tbody></table></div><button class="s" onclick="doNorm()">Normalise all column names (lowercase, underscores)</button></div>`},
+rp(){if(!D)return`<h2>Report & export</h2>${empty()}`;const p=D.p,cl=cleaned(),ch=D.log.length;
+ const txt=`Dataset: ${D.name}\nRows: ${p.n}  Columns: ${D.cols.length}\nQuality score: ${f(p.score,1)}/100 (original upload: ${f(D.p0.score,1)}/100)\nMissing cells: ${p.mc} (${f(p.mp,1)}%)  Duplicate rows: ${p.dup}\n\nColumn,Count,Mean,Std,Min,Median,Max,IQR outliers\n${Object.entries(p.stats).map(([c,s])=>[c,s.n,f(s.mean,4),f(s.sd,4),f(s.min,4),f(s.median,4),f(s.max,4),p.out[c]].join(',')).join('\n')}\n\nChanges made by the user:\n${ch?D.log.map(l=>'- '+l.label).join('\n'):'- none'}\n\nFindings:\n${p.finds.join('\n')}\n\nLimitations: statistical checks only; not a certification of device or environmental safety.`;
+ return`<h2>Report & export</h2><div class="card"><h3>Analysis summary</h3><p class="mut">Built from your current data. Copy it here, or use the export buttons below.</p><textarea id="t1" readonly>${esc(txt)}</textarea><br><button class="s" onclick="cp('t1')">Copy summary</button></div>
+ <div class="card"><h3>Your data</h3><p class="mut">${ch?`${ch} change(s) applied: ${D.orig.rows.length} rows in the original, ${D.rows.length} now.`:'No changes yet, so exports contain your original data.'} Make changes on the Clean data and Edit data pages. Your original upload can always be restored there.</p><button class="s" onclick="go('cl')">Clean data</button><button class="s" onclick="go('ed')">Edit data</button><textarea id="t2" readonly style="margin-top:8px">${esc(cl.csv)}</textarea><br><button class="s" onclick="cp('t2')">Copy data as CSV</button></div>
+ <div class="card"><h3>Export your data</h3><p class="mut">PDF and Word files contain a summary, statistics, your list of changes and the first ${EXPORT_ROWS} rows. The CSV contains every row.</p><button class="p" style="margin:2px" onclick="exp('pdf')">Download PDF</button> <button class="p" style="margin:2px" onclick="exp('docx')">Download Word (.docx)</button> <button class="s" onclick="exp('csv')">Download CSV</button><p id="xmsg" class="mut" role="status"></p></div>`}
+
 };
-const IC={ov:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',up:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',ex:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',an:'<path d="M12 3l10 18H2zM12 10v5M12 18v.5"/>',ml:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',sim:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',rp:'<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6"/>'};
-const ico=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`,PL=Object.fromEntries(PAGES),GR=[['Dashboard',['ov']],['Data',['up','ex']],['Intelligence',['an','ml']],['Operations',['sim','rp']]];
+const IC={ov:'<path d="M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z"/>',up:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',ex:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',an:'<path d="M12 3l10 18H2zM12 10v5M12 18v.5"/>',cl:'<path d="M3 6h18M7 12h10M10 18h4"/>',ed:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',ml:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',rp:'<path d="M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6"/>'};
+const ico=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`,PL=Object.fromEntries(PAGES),GR=[['Dashboard',['ov']],['Data',['up','ex','cl','ed']],['Intelligence',['an','ml']],['Output',['rp']]];
 const bar=(l,v,max,lab)=>`<div class="bar"><span title="${esc(l)}">${esc(l)}</span><i><u style="width:${max?Math.min(100,v/max*100):0}%"></u></i><em>${lab}</em></div>`;
 const ring=s=>{const r=44,c=2*Math.PI*r;return`<svg viewBox="0 0 120 120" style="max-width:150px;margin:0 auto 8px" role="img" aria-label="Quality score ${f(s,0)} of 100"><circle cx="60" cy="60" r="${r}" fill="none" stroke-width="11" style="stroke:var(--line)"/><circle cx="60" cy="60" r="${r}" fill="none" stroke-width="11" stroke-linecap="round" stroke-dasharray="${c*s/100} ${c}" transform="rotate(-90 60 60)" style="stroke:var(--acc)"/><text x="60" y="67" text-anchor="middle" font-size="26" font-weight="700" style="fill:var(--ink)">${f(s,0)}</text></svg>`};
 const heat=()=>{const nc=numCols().slice(0,6);if(nc.length<2)return'<p class="mut">Needs at least two numeric columns.</p>';return`<div class="wrap"><table><thead><tr><th></th>${nc.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${nc.map(a=>`<tr><th>${esc(a)}</th>${nc.map(b=>{const r=corr(D.num[a],D.num[b]),al=Number.isFinite(r)?Math.abs(r):0;return`<td style="background:${r<0?'rgba(217,83,30,':'rgba(21,128,61,'}${(al*.85).toFixed(2)});color:${al>.55?'#fff':'var(--ink)'}">${f(r)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div><p class="mut" style="font-size:13px;margin:8px 0 0">Green is positive, orange is negative. Correlation does not show cause.</p>`};
+// ---------- data editing: the original upload is kept; every change is undoable ----------
+function refresh(){const{cols,rows}=D,num={},types={},invalid={};let ts=-1;
+ cols.forEach((c,i)=>{const v=rows.map(r=>r[i]).filter(x=>x!==''),nn=v.filter(x=>!isNaN(+x)).length;
+  if(v.length&&nn/v.length>=.9){types[c]='numeric';invalid[c]=v.length-nn;num[c]=rows.map(r=>r[i]===''||isNaN(+r[i])?NaN:+r[i])}
+  else if(v.length&&v.filter(isDate).length/v.length>=.8){types[c]='datetime';if(ts<0)ts=i}else types[c]='categorical'});
+ D.num=num;D.types=types;D.invalid=invalid;D.ts=ts;D.tsv=ts<0?null:rows.map(r=>Date.parse(r[ts]));D._ms={};
+ D._ac=(D._ac||[]).filter(c=>num[c]);D._hide=(D._hide||[]).filter(c=>cols.includes(c));D.p=profile()}
+function commit(p){const prev={cols:D.cols,rows:D.rows,log:D.log};
+ if(!p.rows.length)throw Error('That would leave no rows. Nothing was changed.');
+ D.cols=p.cols||D.cols;D.rows=p.rows;D.log=[...D.log,{label:p.label,k:p.k,n:p.n}];
+ try{refresh();if(!Object.keys(D.num).length)throw Error('That would leave no numeric column. Nothing was changed.')}catch(e){Object.assign(D,prev);refresh();throw e}
+ D.undo.push(prev);if(D.undo.length>20)D.undo.shift();D.redo=[];D.sel=new Set()}
+function undo(){const p=D.undo.pop();if(!p)return;D.redo.push({cols:D.cols,rows:D.rows,log:D.log});Object.assign(D,p);refresh();D.sel=new Set()}
+function redo(){const p=D.redo.pop();if(!p)return;D.undo.push({cols:D.cols,rows:D.rows,log:D.log});Object.assign(D,p);refresh();D.sel=new Set()}
+function resetData(){if(D.rows===D.orig.rows&&D.cols===D.orig.cols)return;D.undo.push({cols:D.cols,rows:D.rows,log:D.log});D.redo=[];Object.assign(D,{cols:D.orig.cols,rows:D.orig.rows,log:[]});refresh();D.sel=new Set()}
+const pn=x=>String(+x.toPrecision(10)),withCell=(r,i,v)=>{const x=r.slice();x[i]=v;return x};
+function planFill(c,m,custom){const i=D.cols.indexOf(c);if(i<0)throw Error('Unknown column.');const numeric=D.types[c]==='numeric';
+ if(['median','mean','interp'].includes(m)&&!numeric)throw Error('That method needs a numeric column.');
+ const R=D.rows,idx=[];R.forEach((r,k)=>{if(r[i]==='')idx.push(k)});
+ if(!idx.length)return{rows:R,n:0,k:'fill',label:c+': no missing values'};
+ if(m==='delete'){const s=new Set(idx);return{rows:R.filter((_,k)=>!s.has(k)),n:idx.length,k:'del',label:`${c}: deleted ${idx.length} row(s) with missing values`}}
+ let val=null;
+ if(m==='median')val=pn(st(D.num[c]).median);else if(m==='mean')val=pn(st(D.num[c]).mean);
+ else if(m==='mode'){const cnt=new Map();R.forEach(r=>{if(r[i]!=='')cnt.set(r[i],(cnt.get(r[i])||0)+1)});val=[...cnt.entries()].sort((a,b)=>b[1]-a[1])[0][0]}
+ else if(m==='custom'){if(custom===undefined||String(custom).trim()==='')throw Error('Type the value to fill with first.');if(numeric&&isNaN(+custom))throw Error('This column is numeric, so the value must be a number.');val=String(custom).trim()}
+ else if(!['ffill','bfill','interp'].includes(m))throw Error('Unknown method.');
+ const out=R.slice();let n=0;
+ if(val!==null)idx.forEach(k=>{out[k]=withCell(R[k],i,val);n++});
+ else if(m==='ffill'){let last=null;R.forEach((r,k)=>{if(r[i]!=='')last=r[i];else if(last!==null){out[k]=withCell(r,i,last);n++}})}
+ else if(m==='bfill'){let nx=null;for(let k=R.length-1;k>=0;k--){const r=R[k];if(r[i]!=='')nx=r[i];else if(nx!==null){out[k]=withCell(r,i,nx);n++}}}
+ else{const a=D.num[c];let pk=-1;for(let k=0;k<R.length;k++)if(Number.isFinite(a[k])){if(pk>=0&&k-pk>1)for(let q=pk+1;q<k;q++)if(R[q][i]===''){out[q]=withCell(R[q],i,pn(a[pk]+(a[k]-a[pk])*(q-pk)/(k-pk)));n++}pk=k}}
+ return{rows:out,n,skipped:idx.length-n,k:'fill',label:`${c}: filled ${n} missing value(s) using ${m}${m==='custom'?' "'+val+'"':''}`}}
+function planDup(keep){const seen=new Set(),R=D.rows,drop=new Set(),key=r=>r.join('\u0001');
+ if(keep==='last'){for(let k=R.length-1;k>=0;k--){const s=key(R[k]);seen.has(s)?drop.add(k):seen.add(s)}}else R.forEach((r,k)=>{const s=key(r);seen.has(s)?drop.add(k):seen.add(s)});
+ return{rows:R.filter((_,k)=>!drop.has(k)),n:drop.size,k:'dup',label:`Removed ${drop.size} duplicate row(s), kept the ${keep==='last'?'last':'first'} copy`}}
+function planOutlier(c,m){const i=D.cols.indexOf(c);if(i<0||D.types[c]!=='numeric')throw Error('Outlier handling needs a numeric column.');
+ if(!['remove','cap','median','blank'].includes(m))throw Error('Unknown method.');
+ const a=D.num[c],s=st(a),lo=s.q1-1.5*(s.q3-s.q1),hi=s.q3+1.5*(s.q3-s.q1),fl=a.map(x=>Number.isFinite(x)&&(x<lo||x>hi)),n=fl.filter(Boolean).length,R=D.rows;
+ const rows=m==='remove'?R.filter((_,k)=>!fl[k]):R.map((r,k)=>fl[k]?withCell(r,i,m==='cap'?pn(a[k]<lo?lo:hi):m==='median'?pn(s.median):''):r);
+ return{rows,n,k:'out',label:`${c}: ${n} outlier(s) ${{remove:'removed (rows deleted)',cap:'capped to the IQR limits',median:'replaced with the median',blank:'set to missing'}[m]}`}}
+function planEdit(k,j,v){v=String(v).trim();if(D.rows[k][j]===v)return null;const R=D.rows.slice();R[k]=withCell(D.rows[k],j,v);return{rows:R,n:1,k:'edit',label:`Edited row ${k+1}, column ${D.cols[j]}`}}
+function planDelRows(idx){if(!idx.length)throw Error('Select at least one row first.');const s=new Set(idx);return{rows:D.rows.filter((_,k)=>!s.has(k)),n:s.size,k:'del',label:`Deleted ${s.size} row(s)`}}
+function planDelCol(c){const j=D.cols.indexOf(c);if(j<0)throw Error('Unknown column.');if(D.cols.length<=1)throw Error('You cannot delete the only column.');
+ return{cols:D.cols.filter((_,q)=>q!==j),rows:D.rows.map(r=>r.filter((_,q)=>q!==j)),n:1,k:'col',label:`Deleted column ${c}`}}
+function planRename(c,nn){nn=String(nn).trim();if(!nn)throw Error('A column name cannot be empty.');if(nn===c)return null;if(D.cols.includes(nn))throw Error('Another column already has that name.');
+ return{cols:D.cols.map(x=>x===c?nn:x),rows:D.rows,n:1,k:'ren',label:`Renamed column ${c} to ${nn}`}}
+function planNormalize(){const names=D.cols.map(c=>c.trim().toLowerCase().replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')||'column');
+ if(new Set(names).size!==names.length)throw Error('Normalising would make two names identical. Rename them first.');
+ return{cols:names,rows:D.rows,n:names.filter((x,q)=>x!==D.cols[q]).length,k:'ren',label:'Normalised column names'}}
+function planReplace(c,fd,rp,whole){if(fd==='')throw Error('Enter the text to find.');const js=c==='*'?D.cols.map((_,j)=>j):[D.cols.indexOf(c)];let n=0;
+ const rows=D.rows.map(row=>{let out=row;js.forEach(j=>{const v=row[j],nv=whole?(v===fd?rp:v):v.split(fd).join(rp);if(nv!==v){if(out===row)out=row.slice();out[j]=nv.trim();n++}});return out});
+ return{rows,n,k:'rep',label:`Replaced "${fd}" with "${rp}" in ${n} cell(s)`}}
+function cleaned(){const q=x=>/[",\r\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;return{rows:D.rows,csv:[D.cols,...D.rows].map(r=>r.map(q).join(',')).join('\n')}}
+// ----- UI helpers and handlers -----
+const FM_NUM=[['median','Fill with median'],['mean','Fill with mean'],['interp','Fill by linear interpolation'],['ffill','Fill with previous value'],['bfill','Fill with next value'],['mode','Fill with most common value'],['custom','Fill with a value I type'],['delete','Delete the rows']];
+const FM_TXT=[['mode','Fill with most common value'],['ffill','Fill with previous value'],['bfill','Fill with next value'],['custom','Fill with a value I type'],['delete','Delete the rows']];
+const OM=[['cap','Cap to the IQR limits'],['median','Replace with the median'],['blank','Set to missing'],['remove','Delete the rows']];
+const defM=c=>D.types[c]==='numeric'?'median':'mode',opt=(l,s)=>l.map(([v,t])=>`<option value="${v}" ${v===s?'selected':''}>${t}</option>`).join('');
+function prevFill(c,m,cv){try{const p=planFill(c,m,cv);return m==='delete'?`Will delete ${p.n} row(s)`:`Will fill ${p.n} of ${D.p.miss[c]}`+(p.skipped?`; ${p.skipped} stay missing (no value to copy from)`:'')}catch(e){return e.message}}
+const ebar=()=>`<div class="card"><div class="ph"><div><b>${D.rows.length}</b> rows now (${D.orig.rows.length} originally). Quality score <b>${f(D.p0.score,1)}</b> to <b>${f(D.p.score,1)}</b></div><div><button class="s" ${D.undo.length?'':'disabled'} onclick="dUndo()">Undo</button><button class="s" ${D.redo.length?'':'disabled'} onclick="dRedo()">Redo</button><button class="s" onclick="dReset()">Restore original</button></div></div>${D._msg?`<div class="${D._merr?'err':'mut'}" role="${D._merr?'alert':'status'}" style="margin-top:8px">${esc(D._msg)}</div>`:''}${D.log.length?`<details style="margin-top:8px"><summary>Changes made (${D.log.length})</summary><ol>${D.log.slice(-15).map(l=>`<li>${esc(l.label)}</li>`).join('')}</ol></details>`:''}</div>`;
+function act(fn){try{const p=fn();if(!p||p.n===0){D._msg='Nothing to change.';D._merr=false}else{commit(p);D._msg='Done: '+p.label;D._merr=false}}catch(e){D._msg=e.message;D._merr=true}render()}
+const dUndo=()=>{undo();D._msg='Undid the last change.';D._merr=false;render()},dRedo=()=>{redo();D._msg='Redid the change.';D._merr=false;render()},dReset=()=>{resetData();D._msg='Restored your original upload.';D._merr=false;render()};
+const setM=(i,v)=>{(D._m=D._m||{})[D.cols[i]]=v;render()},setCv=(i,v)=>{(D._cv=D._cv||{})[D.cols[i]]=v;render()},setO=(i,v)=>{(D._o=D._o||{})[D.cols[i]]=v;render()};
+const doFill=i=>{const c=D.cols[i];act(()=>planFill(c,(D._m||{})[c]||defM(c),(D._cv||{})[c]))};
+const doDup=k=>act(()=>planDup(k)),doOut=i=>{const c=D.cols[i];act(()=>planOutlier(c,(D._o||{})[c]||'cap'))};
+const doDelAnyMissing=()=>act(()=>{const rows=D.rows.filter(r=>!r.includes(''));return{rows,n:D.rows.length-rows.length,k:'del',label:`Deleted ${D.rows.length-rows.length} row(s) that had a missing value`}});
+function doFillAll(){try{const m=$('#bulkm').value,cs=D.cols.filter(c=>D.types[c]==='numeric'&&D.p.miss[c]>0),n0=D.undo.length;let tot=0;
+ cs.forEach(c=>{const p=planFill(c,m);if(p.n){commit(p);tot+=p.n}});const add=D.undo.length-n0;if(add>1)D.undo.splice(n0+1,add-1);
+ D._msg=tot?`Done: ${m==='delete'?'deleted':'filled'} ${tot} item(s) in ${cs.length} column(s) using ${m}`:'Nothing to change.';D._merr=false}catch(e){D._msg=e.message;D._merr=true}render()}
+const edit=(k,j,v)=>act(()=>planEdit(k,j,v)),selRow=k=>{D.sel.has(k)?D.sel.delete(k):D.sel.add(k);render()},pgo=d=>{D._pg=(D._pg||0)+d;render()};
+const doDelSel=()=>act(()=>planDelRows([...D.sel])),doDelCol=j=>{const c=D.cols[j];act(()=>planDelCol(c))},doRename=(j,v)=>{const c=D.cols[j];act(()=>planRename(c,v))},doNorm=()=>act(planNormalize);
+const doReplace=()=>{const v=$('#frc').value,c=v==='*'?'*':D.cols[+v];act(()=>planReplace(c,$('#frf').value,$('#frr').value,$('#frw').checked))};
+// ---------- export (PDF, Word, CSV): no libraries, built from the cleaned data ----------
+const EXPORT_ROWS=1000;
+function buildExport(){
+ const sum=k=>D.log.filter(l=>l.k===k).reduce((s,l)=>s+l.n,0),ch=D.log.map(l=>l.label),cl=cleaned();
+ const stat=numCols().map(c=>{const s=st(D.num[c]);return s?[c,s.n,f(s.mean),f(s.sd),f(s.min),f(s.median),f(s.max)]:[c,0,'-','-','-','-','-']});
+ return{title:'Cleaned dataset report',
+  meta:[['Dataset',D.name],['Generated',new Date().toLocaleString()],['Rows in original upload',D.orig.rows.length],['Rows now',D.rows.length],['Quality score (original to now)',`${f(D.p0.score,1)} to ${f(D.p.score,1)}`],['Missing values filled',sum('fill')],['Duplicate rows removed',sum('dup')],['Changes applied',ch.length?(ch.length>8?ch.slice(0,8).join('; ')+`; and ${ch.length-8} more`:ch.join('; ')):'None (data unchanged)']],
+  statHead:['Column','Count','Mean','Std','Min','Median','Max'],stat,head:D.cols,body:D.rows.slice(0,EXPORT_ROWS),csv:cl.csv,
+  note:`The table shows the first ${Math.min(EXPORT_ROWS,D.rows.length)} of ${D.rows.length} rows. Use the CSV download for the full cleaned data. Your original upload is kept unchanged in the app.`}}
+const wrapT=(t,n=130)=>{const out=[];let l='';String(t).split(' ').forEach(w=>{if((l+' '+w).length>n&&l){out.push(l);l=w}else l=l?l+' '+w:w});out.push(l);return out};
+const pe=t=>String(t).replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[^\x20-\xff]/g,'?').replace(/[\\()]/g,'\\$&');
+function pdfBytes(lines){const W=842,H=595,M=30,pg=[[]];let y=H-M;
+ lines.forEach(([t,sz,fn])=>{const lh=sz*1.4;if(y-lh<M){pg.push([]);y=H-M}y-=lh;if(t)pg[pg.length-1].push(`BT /${fn} ${sz} Tf ${M} ${y.toFixed(1)} Td (${pe(t)}) Tj ET`)});
+ const o=[null,'<< /Type /Catalog /Pages 2 0 R >>',`<< /Type /Pages /Kids [${pg.map((_,i)=>`${6+2*i} 0 R`).join(' ')}] /Count ${pg.length} >>`,'<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+ pg.forEach((c,i)=>{const s=c.join('\n');o.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents ${7+2*i} 0 R >>`,`<< /Length ${s.length} >>\nstream\n${s}\nendstream`)});
+ let out='%PDF-1.4\n';const off=[];for(let i=1;i<o.length;i++){off[i]=out.length;out+=`${i} 0 obj\n${o[i]}\nendobj\n`}
+ const xr=out.length;out+=`xref\n0 ${o.length}\n0000000000 65535 f \n`+off.slice(1).map(v=>String(v).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${o.length} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`;
+ return Uint8Array.from(out,ch=>ch.charCodeAt(0)&255)}
+function buildPDF(){const x=buildExport(),L=[],P=(t,s=10,fn='F3')=>L.push([t,s,fn]),pad=(v,n)=>String(v).slice(0,n).padEnd(n);
+ P(x.title,18,'F2');P('',6);x.meta.forEach(([k,v])=>wrapT(`${k}: ${v}`).forEach(l=>P(l,10)));P('',8);P('Descriptive statistics (cleaned data)',12,'F2');
+ P(x.statHead.map((h,i)=>pad(h,i?10:20)).join(' '),8,'F1');x.stat.forEach(r=>P(r.map((v,i)=>pad(v,i?10:20)).join(' '),8,'F1'));
+ P('',8);P('Cleaned data',12,'F2');
+ const w=x.head.map((h,i)=>Math.min(14,Math.max(String(h).length,...x.body.slice(0,200).map(r=>String(r[i]).length))));
+ let used=0,k=0;while(k<w.length&&used+w[k]+1<=185){used+=w[k]+1;k++}
+ if(k<w.length)P(`Showing the first ${k} of ${w.length} columns. The CSV download has all columns.`,9);
+ const line=r=>r.slice(0,k).map((v,i)=>pad(v,w[i])).join(' ');
+ P(line(x.head),7,'F1');x.body.forEach(r=>P(line(r),7,'F1'));P('',8);wrapT(x.note).forEach(l=>P(l,9));
+ return pdfBytes(L)}
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
+const setv=(d,a)=>a.forEach(([o,l,v])=>l==4?d.setUint32(o,v,true):d.setUint16(o,v,true));
+function zipBytes(files){const enc=new TextEncoder(),ps=[],cd=[];let off=0;
+ files.forEach(fl=>{const nm=enc.encode(fl.name),c=crc(fl.data),n=fl.data.length,h=new DataView(new ArrayBuffer(30)),g=new DataView(new ArrayBuffer(46));
+  setv(h,[[0,4,0x04034b50],[4,2,20],[6,2,0x0800],[8,2,0],[10,2,0],[12,2,0x21],[14,4,c],[18,4,n],[22,4,n],[26,2,nm.length],[28,2,0]]);
+  setv(g,[[0,4,0x02014b50],[4,2,20],[6,2,20],[8,2,0x0800],[10,2,0],[12,2,0],[14,2,0x21],[16,4,c],[20,4,n],[24,4,n],[28,2,nm.length],[30,2,0],[32,2,0],[34,2,0],[36,2,0],[38,4,0],[42,4,off]]);
+  ps.push(new Uint8Array(h.buffer),nm,fl.data);cd.push(new Uint8Array(g.buffer),nm);off+=30+nm.length+n});
+ const e=new DataView(new ArrayBuffer(22));setv(e,[[0,4,0x06054b50],[4,2,0],[6,2,0],[8,2,files.length],[10,2,files.length],[12,4,cd.reduce((s,a)=>s+a.length,0)],[16,4,off],[20,2,0]]);
+ const all=[...ps,...cd,new Uint8Array(e.buffer)],out=new Uint8Array(all.reduce((s,a)=>s+a.length,0));let p=0;all.forEach(a=>{out.set(a,p);p+=a.length});return out}
+const xe=s=>String(s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const wp=(t,{b,sz,sp}={})=>`<w:p><w:pPr><w:spacing w:after="${sp??80}"/></w:pPr><w:r><w:rPr>${b?'<w:b/>':''}<w:sz w:val="${sz||20}"/></w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r></w:p>`;
+const wt=(head,rows)=>{const bd=['top','left','bottom','right','insideH','insideV'].map(s=>`<w:${s} w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>`).join(''),
+ cell=(t,b)=>`<w:tc><w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:rPr>${b?'<w:b/>':''}<w:sz w:val="16"/></w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r></w:p></w:tc>`;
+ return`<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${bd}</w:tblBorders></w:tblPr>${[head,...rows].map((r,i)=>`<w:tr>${r.map(v=>cell(v,i==0)).join('')}</w:tr>`).join('')}</w:tbl>`};
+function buildDOCX(){const x=buildExport(),enc=new TextEncoder(),H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+ const body=wp(x.title,{b:1,sz:36,sp:160})+x.meta.map(([k,v])=>wp(`${k}: ${v}`)).join('')+wp('Descriptive statistics (cleaned data)',{b:1,sz:26})+wt(x.statHead,x.stat)+wp('')+wp('Cleaned data',{b:1,sz:26})+wt(x.head,x.body)+wp(x.note,{sz:18});
+ const doc=H+`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+ return zipBytes([{name:'[Content_Types].xml',data:enc.encode(H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')},
+  {name:'_rels/.rels',data:enc.encode(H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')},
+  {name:'word/document.xml',data:enc.encode(doc)}])}
+function save(bytes,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+function exp(kind){const m=$('#xmsg');try{const b=D.name.replace(/\.[^.]+$/,'').replace(/[^\w-]+/g,'_')+'_cleaned';
+ if(kind==='pdf')save(buildPDF(),b+'.pdf','application/pdf');else if(kind==='docx')save(buildDOCX(),b+'.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document');else save(new TextEncoder().encode('\ufeff'+cleaned().csv),b+'.csv','text/csv');
+ m.textContent='Download started. If nothing appears, your browser may block downloads in this view: open the site directly, or use the copy buttons above.'}catch(e){m.textContent='Export failed: '+e.message}}
 // ---------- helpers ----------
 function ms(a){const s=st(a),v=a.filter(Number.isFinite).sort((x,y)=>x-y),m=qt(v,.5),mad=qt(v.map(x=>Math.abs(x-m)).sort((x,y)=>x-y),.5);return{m,d:mad>0?.6745/mad:(s.sd>0?1/s.sd:0)}}
 function forecast(c){let ix=D.rows.map((_,i)=>i);if(D.tsv)ix=ix.filter(i=>Number.isFinite(D.tsv[i])).sort((a,b)=>D.tsv[a]-D.tsv[b]);const y=ix.map(i=>D.num[c][i]).filter(Number.isFinite);
@@ -158,10 +293,6 @@ function forecast(c){let ix=D.rows.map((_,i)=>i);if(D.tsv)ix=ix.filter(i=>Number
 function met(a,p){const n=a.length,e=a.map((x,i)=>x-p[i]),m=a.reduce((s,x)=>s+x,0)/n,ss=a.reduce((s,x)=>s+(x-m)**2,0);return{mae:e.reduce((s,x)=>s+Math.abs(x),0)/n,rmse:Math.sqrt(e.reduce((s,x)=>s+x*x,0)/n),r2:ss?1-e.reduce((s,x)=>s+x*x,0)/ss:NaN}}
 function ols(X,y){const k=X[0].length,A=Array.from({length:k},()=>Array(k+1).fill(0));X.forEach((r,t)=>{for(let i=0;i<k;i++){for(let j=0;j<k;j++)A[i][j]+=r[i]*r[j];A[i][k]+=r[i]*y[t]}});for(let i=0;i<k;i++)A[i][i]+=1e-6;
  for(let i=0;i<k;i++){let p=i;for(let r=i+1;r<k;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];for(let r=0;r<k;r++)if(r!==i){const m=A[r][i]/A[i][i];for(let c=i;c<=k;c++)A[r][c]-=m*A[i][c]}}return A.map((r,i)=>r[k]/r[i])}
-function cleaned(){const med={};numCols().forEach(c=>med[c]=st(D.num[c]).median);let rows=D.rows.map(r=>r.slice()),filled=0;
- if(D._ops.fill)rows.forEach(r=>D.cols.forEach((c,i)=>{if(r[i]===''&&med[c]!==undefined){r[i]=String(med[c]);filled++}}));
- if(D._ops.dup){const s=new Set();rows=rows.filter(r=>{const k=r.join('\u0001');if(s.has(k))return false;s.add(k);return true})}
- const q=x=>/[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;return{rows,filled,csv:[D.cols,...rows].map(r=>r.map(q).join(',')).join('\n')}}
 function cp(id){const t=$('#'+id);t.select();try{document.execCommand('copy')}catch(e){}}
 function tgl(k){const c=D.cols[k];D._hide=D._hide||[];const i=D._hide.indexOf(c);i<0?D._hide.push(c):D._hide.splice(i,1);render()}
 function atg(k){const c=numCols()[k];const i=D._ac.indexOf(c);i<0?D._ac.push(c):D._ac.splice(i,1);render()}
@@ -172,20 +303,11 @@ function sample(k){let seed=k.length*7919;const rnd=()=>(seed=(seed*16807)%21474
  try{ingest(k+' (sample)',[['timestamp',...sp.map(s=>s[0])],...rows].map(r=>r.join(',')).join('\n'),0);D._c=null;go('ov')}catch(e){alert(e.message)}}
 function loadFile(file){const e=$('#uerr');e.innerHTML='';if(!/\.csv$/i.test(file.name)){e.innerHTML='<div class="err">Unsupported file type. Upload a .csv file.</div>';return}
  const r=new FileReader();r.onerror=()=>e.innerHTML='<div class="err">The file could not be read.</div>';r.onload=()=>{try{ingest(file.name,r.result,file.size);go('ov')}catch(x){e.innerHTML=`<div class="err">${esc(x.message)}</div>`}};r.readAsText(file)}
-// ---------- simulator ----------
-const PROF={temperature:[24,3,'°C',30],humidity:[55,8,'%',75],air_quality:[60,20,'AQI',100],water_ph:[7.2,.3,'pH',7.8],energy:[1.2,.4,'kW',2.2]};
-S={paused:false,dev:[{id:'dev-1',s:'temperature'},{id:'dev-2',s:'humidity'},{id:'dev-3',s:'air_quality'},{id:'dev-4',s:'energy'}],hist:{},alerts:[],thr:Object.fromEntries(Object.entries(PROF).map(([k,v])=>[k,v[3]]))};
-function addDev(){const ks=Object.keys(PROF),k=ks[S.dev.length%ks.length];S.dev.push({id:'dev-'+(S.dev.length+1),s:k});live()}
-function tick(){if(S.paused)return;S.dev.forEach(d=>{const[mu,sd]=PROF[d.s],r=Math.random();let v=mu+sd*(Math.random()+Math.random()+Math.random()-1.5)*1.6;if(r<.05)v=NaN;else if(r<.08)v=mu+(Math.random()<.5?-1:1)*sd*4.5;
- (S.hist[d.id]=S.hist[d.id]||[]).push(v);if(S.hist[d.id].length>60)S.hist[d.id].shift();if(Number.isFinite(v)&&v>S.thr[d.s])S.alerts.unshift(`${new Date().toLocaleTimeString()} ${d.id} (${d.s}) read ${f(v)} ${PROF[d.s][2]}, above ${S.thr[d.s]}`)});S.alerts=S.alerts.slice(0,8);live()}
-function live(){const el=$('#live');if(!el)return;el.innerHTML=`<div class="grid">${S.dev.map(d=>{const h=S.hist[d.id]||[],v=h[h.length-1];return`<div class="card kpi"><b>${h.length?(Number.isFinite(v)?f(v)+' '+PROF[d.s][2]:'missing'):'–'}</b><span>${d.id} · ${d.s} <span class="sim">sim</span></span>${chart([{v:h}],[],70)}</div>`}).join('')}</div>
- <div class="card"><h3>Alerts</h3>${S.alerts.length?'<ul>'+S.alerts.map(a=>`<li>${esc(a)}</li>`).join('')+'</ul>':'<p class="mut">No threshold crossings yet.</p>'}</div>`}
-setInterval(tick,1000);
 // ---------- shell ----------
-function go(t){tab=t;render();$('#main').focus()}
-function render(){D&&(D._ms=D._ms||{});$('#nav').innerHTML=GR.map(([g,ks])=>`<small>${g}</small>`+ks.map(k=>`<button ${k===tab?'aria-current="page"':''} onclick="go('${k}')">${ico(k)}${PL[k]}</button>`).join('')).join('');$('#chip').innerHTML=D?`<span class="dot on"></span>${esc(D.name)}`:'<span class="dot"></span>No dataset loaded';
+function go(t){tab=t;if(D)D._msg='';render();$('#main').focus()}
+function render(){const y=typeof window!=='undefined'?window.scrollY:0,same=render.t===tab;render.t=tab;if(same&&typeof window!=='undefined')setTimeout(()=>window.scrollTo(0,y),0);D&&(D._ms=D._ms||{});$('#nav').innerHTML=GR.map(([g,ks])=>`<small>${g}</small>`+ks.map(k=>`<button ${k===tab?'aria-current="page"':''} onclick="go('${k}')">${ico(k)}${PL[k]}</button>`).join('')).join('');$('#chip').innerHTML=D?`<span class="dot on"></span>${esc(D.name)}`:'<span class="dot"></span>No dataset loaded';
  try{$('#main').innerHTML=V[tab]()}catch(e){$('#main').innerHTML=`<div class="err">Something went wrong rendering this page: ${esc(e.message)}</div>`}
- if(tab==='sim')live();if(tab==='ex')document.querySelectorAll('#main tbody tr').forEach((tr,i)=>tr.onclick=()=>{const ix=[...tr.parentNode.children].indexOf(tr);$('#rec').innerHTML='<p class="mut">Selected row</p><pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(Object.fromEntries(tr.children.length?[...tr.children].map((td,j)=>[td.closest('table').tHead.rows[0].cells[j].textContent,td.textContent]):[]),null,1))+'</pre>'});
+ if(tab==='ex')document.querySelectorAll('#main tbody tr').forEach((tr,i)=>tr.onclick=()=>{const ix=[...tr.parentNode.children].indexOf(tr);$('#rec').innerHTML='<p class="mut">Selected row</p><pre style="white-space:pre-wrap;font-size:12px">'+esc(JSON.stringify(Object.fromEntries(tr.children.length?[...tr.children].map((td,j)=>[td.closest('table').tHead.rows[0].cells[j].textContent,td.textContent]):[]),null,1))+'</pre>'});
  if(tab==='up'){const dz=$('#drop'),fi=$('#file');fi.onchange=()=>fi.files[0]&&loadFile(fi.files[0]);['dragover','dragenter'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.add('on')}));['dragleave','drop'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.remove('on')}));dz.addEventListener('drop',x=>x.dataTransfer.files[0]&&loadFile(x.dataTransfer.files[0]))}}
 render();
 </script></body></html>
